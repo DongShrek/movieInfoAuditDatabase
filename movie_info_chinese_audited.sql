@@ -5,6 +5,8 @@ from imdb_douban_movie m;
 
 alter table movie_info_chinese_audited
     add primary key (ImdbId(255));
+alter table movie_info_chinese_audited
+    add languageChinese text null;
 
 ## 电影中文有增加则表更新
 insert ignore into movie_info_chinese_audited (ImdbId, chineseTitle)

@@ -8,12 +8,12 @@ alter table movie_info_chinese_audited
 alter table movie_info_chinese_audited
     add languageChinese text null;
 
-## 电影中文有增加则表更新
+## 未来更新策略：电影中文有增加则表更新
 insert ignore into movie_info_chinese_audited (ImdbId, chineseTitle)
 select m.ImdbId, m.chineseTitle
 from imdb_douban_movie m;
 
-## 利用TMDB更新缺失的英文名
+## 利用TMDB更新缺失的中文名
 insert ignore into movie_info_chinese_audited (ImdbId, chineseTitle)
 select m.ImdbId, t.movieTitle
 from imdb_douban_movie m,

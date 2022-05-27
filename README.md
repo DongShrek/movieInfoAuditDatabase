@@ -6,3 +6,8 @@
 - BDX8SRX9
  
 ![BDX8SRX9](for_excel/BDX8SRX9.png)
+
+- 3FQHYAW2
+
+![3FQHYAW2](for_chart/3FQHYAW2.png)
+![3FQHYAW2](for_chart/chart_3FQHYAW2.png)

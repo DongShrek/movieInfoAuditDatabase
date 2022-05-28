@@ -1,12 +1,33 @@
 # 中文表 9UVGU5QQ
-select * from movie_basic_info
-left join movie_info_chinese_audited mica on movie_basic_info.ImdbId = mica.ImdbId
-left join movie_language_audited mla on mica.ImdbId = mla.ImdbId;
+select *
+from (select m.ImdbId,
+             m.Title,
+             mcta.chineseTitle,
+             mla.languageInChinese,
+             m.Language,
+             m.Country,
+             m.Director,
+             m.Genre,
+             m.Imdb250Day,
+             m.kind,
+             m.Year,
+             mla.originalLanguage
+      from movie_basic_info m
+               left join movie_chinese_title_audited mcta on m.ImdbId = mcta.ImdbId
+               left join movie_language_audited mla on mcta.ImdbId = mla.ImdbId) a,
+     movies_analysis_list
+where a.ImdbId = movies_analysis_list.ImdbId;
 
 
 # 语言种类表 BDX8SRX9
-select * from (select originalLanguage from tmdb_movie_chinese group by originalLanguage) as languageCodeTable
-left join language_conversion on languageCodeTable.originalLanguage=language_conversion.languageCode;
+select *
+from (select originalLanguage
+      from tmdb_movie_chinese,
+           movies_analysis_list
+      where tmdb_movie_chinese.ImdbId = movies_analysis_list.ImdbId
+      group by originalLanguage) as languageCodeTable
+         left join language_conversion on languageCodeTable.originalLanguage = language_conversion.languageCode;
+
 
 # 在榜时间表 9X3KC8SR
 select *

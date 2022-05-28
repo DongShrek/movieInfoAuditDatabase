@@ -1,4 +1,4 @@
-create table movie_language_audited (select tm.ImdbId, la.chineseName, tm.originalLanguage
+create table movie_language_audited (select tm.ImdbId, la.languageInChinese, tm.originalLanguage
                                      from tmdb_movie_chinese as tm
                                               left join (select *
                                                          from (select originalLanguage

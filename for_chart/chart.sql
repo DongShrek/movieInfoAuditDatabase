@@ -2,5 +2,5 @@
 select mla.languageInChinese as languages, count(mla.languageInChinese) as number
 from movies_analysis_list mal,
      movie_language_audited mla
-where mal.ImdbId = mla.ImdbId
+where mal.ImdbId = mla.ImdbId and mal.isNeedAnalysis='y'
 group by mla.languageInChinese order by number desc

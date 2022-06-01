@@ -16,15 +16,14 @@ from (select m.ImdbId,
                left join movie_chinese_title_audited mcta on m.ImdbId = mcta.ImdbId
                left join movie_language_audited mla on mcta.ImdbId = mla.ImdbId) a,
      movies_analysis_list
-where a.ImdbId = movies_analysis_list.ImdbId;
-
+where a.ImdbId = movies_analysis_list.ImdbId and movies_analysis_list.isNeedAnalysis='y';
 
 # 语言种类表 BDX8SRX9
 select *
 from (select originalLanguage
       from tmdb_movie_chinese,
            movies_analysis_list
-      where tmdb_movie_chinese.ImdbId = movies_analysis_list.ImdbId
+      where tmdb_movie_chinese.ImdbId = movies_analysis_list.ImdbId and movies_analysis_list.isNeedAnalysis='y'
       group by originalLanguage) as languageCodeTable
          left join language_conversion on languageCodeTable.originalLanguage = language_conversion.languageCode;
 
@@ -54,5 +53,5 @@ from (select ImdbId,
                      left join imdb_250_day_list as daylist1 on startday = daylist1.day
                      left join imdb_250_day_list as daylist2 on endday = daylist2.day) as movieDuration) a,
      movies_analysis_list
-where a.ImdbId = movies_analysis_list.ImdbId
+where a.ImdbId = movies_analysis_list.ImdbId and movies_analysis_list.isNeedAnalysis='y'
 order by a.endDay desc, a.startDay;

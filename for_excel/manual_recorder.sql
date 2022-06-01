@@ -1,5 +1,6 @@
 # 手工修改的数据库部分
 
+## 修改movies_analysis_list 表
 # 只分析2022年以前的电影
 update movies_analysis_list set isNeedAnalysis='n'
 where ImdbId in (select ImdbId from movie_basic_info where Imdb250Day>'2021-12-31');

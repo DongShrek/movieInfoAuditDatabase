@@ -14,3 +14,7 @@ update movies_analysis_list set isNeedAnalysis='n' where ImdbId='tt0150742';
 
 # 剩余电影更新为y（需要分析）
 update movies_analysis_list set isNeedAnalysis='y' where isNeedAnalysis is null ;
+
+## （2）修改导演表
+update movies_director_audited set director='詹姆斯·麦克提格 James McTeigue' where ImdbId='tt0434409'; #V字仇杀队
+update movies_director_audited set director='特雷·帕克 Trey Parker' where ImdbId='tt0158983'; #南方公园：加长未删减剧场版

@@ -1,6 +1,6 @@
 # 手工修改的数据库部分
 
-## 修改movies_analysis_list 表
+## （1）修改movies_analysis_list 表
 # 只分析2022年以前的电影
 update movies_analysis_list set isNeedAnalysis='n'
 where ImdbId in (select ImdbId from movie_basic_info where Imdb250Day>'2021-12-31');
@@ -11,3 +11,6 @@ where ImdbId in (select ImdbId from movie_basic_info where kind<>'movie');
 
 # 排除电影教父合集The Godfather Trilogy: 1901-1980
 update movies_analysis_list set isNeedAnalysis='n' where ImdbId='tt0150742';
+
+# 剩余电影更新为y（需要分析）
+update movies_analysis_list set isNeedAnalysis='y' where isNeedAnalysis is null ;

@@ -57,9 +57,11 @@ where a.ImdbId = movies_analysis_list.ImdbId and movies_analysis_list.isNeedAnal
 order by a.endDay desc, a.startDay;
 
 # 生成导演表 单行变多行 JSLA2ZY8
-SELECT idm.ImdbId
-    , idm.chineseTitle
-    , substring_index(substring_index(idm.director, ';', b.help_topic_id + 1), ';', - 1) AS director
-FROM imdb_douban_movie idm
-INNER JOIN mysql.help_topic b
-    ON b.help_topic_id < (length(idm.director) - length(REPLACE(idm.director, ';', '')) + 1)
+SELECT mda.ImdbId
+     , mda.chineseTitle
+     , mda.ImdbTitle
+     , substring_index(substring_index(mda.director, ';', b.help_topic_id + 1), ';', - 1) AS director
+FROM movies_director_audited mda
+         INNER JOIN mysql.help_topic b
+                    ON b.help_topic_id < (length(mda.director) - length(REPLACE(mda.director, ';', '')) + 1)
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis='y');

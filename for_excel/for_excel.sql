@@ -65,3 +65,20 @@ FROM movies_director_audited mda
          INNER JOIN mysql.help_topic b
                     ON b.help_topic_id < (length(mda.director) - length(REPLACE(mda.director, ';', '')) + 1)
 where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis='y');
+
+# 电影导演电影数量 SPHW52XE
+select a.director ,count(*) number from (SELECT mda.ImdbId
+     , mda.chineseTitle
+     , mda.ImdbTitle
+     , substring_index(substring_index(mda.director, ';', b.help_topic_id + 1), ';', - 1) AS director
+FROM movies_director_audited mda
+         INNER JOIN mysql.help_topic b
+                    ON b.help_topic_id < (length(mda.director) - length(REPLACE(mda.director, ';', '')) + 1)
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis='y')) a group by director order by number desc ;
+
+# 各语言数量 语言占比统计饼图_3FQHYAW2
+select mla.languageInChinese as languages, count(mla.languageInChinese) as number
+from movies_analysis_list mal,
+     movie_language_audited mla
+where mal.ImdbId = mla.ImdbId and mal.isNeedAnalysis='y'
+group by mla.languageInChinese order by number desc

@@ -9,8 +9,7 @@
 
 - 3FQHYAW2
 
-![3FQHYAW2](for_chart/3FQHYAW2.png)
-![3FQHYAW2](for_chart/chart_3FQHYAW2.png)
+![3FQHYAW2](for_excel/3FQHYAW2.png)
 
 - 9X3KC8SR
 
@@ -19,3 +18,6 @@
 - JSLA2ZY8
 
 ![JSLA2ZY8](for_excel/JSLA2ZY8.png)
+
+- SPHW52XE
+![SPHW52XE](for_excel/SPHW52XE.png)

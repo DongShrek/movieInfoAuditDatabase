@@ -23,3 +23,4 @@ update movies_director_audited set director='苏达·孔加拉 Sudha Kongara' wh
 update movies_director_audited set director='穆拉特·丹达尔 Murat Dundar' where ImdbId='tt2592910';
 update movies_director_audited set director='普雷姆·库玛 C. Prem Kumar' where ImdbId='tt7019842';
 update movies_director_audited set director='拉姆·库玛 Ram Kumar' where ImdbId='tt7060344';
+update movies_director_audited set director='埃泰勒姆·埃吉尔梅斯 Ertem Egilmez' where director='Ertem Egilmez Ertem Egilmez';

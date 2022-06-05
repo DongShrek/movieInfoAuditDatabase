@@ -18,3 +18,8 @@ update movies_analysis_list set isNeedAnalysis='y' where isNeedAnalysis is null 
 ## （2）修改导演表
 update movies_director_audited set director='詹姆斯·麦克提格 James McTeigue' where ImdbId='tt0434409'; #V字仇杀队
 update movies_director_audited set director='特雷·帕克 Trey Parker' where ImdbId='tt0158983'; #南方公园：加长未删减剧场版
+update movies_director_audited set director='萨维奇·史蒂夫·霍兰德 Savage Steve Holland' where ImdbId='tt0088794';
+update movies_director_audited set director='苏达·孔加拉 Sudha Kongara' where ImdbId='tt10189514';
+update movies_director_audited set director='穆拉特·丹达尔 Murat Dundar' where ImdbId='tt2592910';
+update movies_director_audited set director='普雷姆·库玛 C. Prem Kumar' where ImdbId='tt7019842';
+update movies_director_audited set director='拉姆·库玛 Ram Kumar' where ImdbId='tt7060344';

@@ -82,3 +82,24 @@ from movies_analysis_list mal,
      movie_language_audited mla
 where mal.ImdbId = mla.ImdbId and mal.isNeedAnalysis='y'
 group by mla.languageInChinese order by number desc
+
+# 生成演员表 单行变多行 Z77MAPS2
+SELECT maa.ImdbId
+     , maa.chineseTitle
+     , maa.ImdbTitle
+     , substring_index(substring_index(maa.actor, ';', auto_id.id + 1), ';', - 1) AS actor
+FROM movies_actor_audited maa
+JOIN auto_id
+ON auto_id.id< (length(maa.actor) - length(REPLACE(maa.actor, ';', '')) + 1)
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis='y')
+
+# 演员电影数量 3DHCJBWY 取一部电影前5位的演员
+select a.actor ,count(*) number from
+(SELECT maa.ImdbId
+     , maa.chineseTitle
+     , maa.ImdbTitle
+     , substring_index(substring_index(maa.actor, ';', auto_id.id + 1), ';', - 1) AS actor
+FROM movies_actor_audited maa
+JOIN auto_id
+ON auto_id.id< (length(maa.actor) - length(REPLACE(maa.actor, ';', '')) + 1)
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis='y')) a group by actor order by number desc ;

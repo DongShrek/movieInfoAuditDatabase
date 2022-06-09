@@ -104,7 +104,7 @@ JOIN auto_id
 ON auto_id.id< (length(maa.actor) - length(REPLACE(maa.actor, ';', '')) + 1)
 where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis='y')) a group by actor order by number desc ;
 
-# 电影日期 X8TJAGBA
+# 每年电影数量 X8TJAGBA
 select timeline_year.the_year year, ifnull(a.number, 0) number
 from timeline_year
          left join (select publish_year, count(*) number
@@ -112,4 +112,18 @@ from timeline_year
                           from movies_publish_date_audited
                           where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')) md
                     group by publish_year
-                    order by publish_year) a on timeline_year.the_year = a.publish_year
+                    order by publish_year) a on timeline_year.the_year = a.publish_year;
+
+# 导演每年电影数量 GVEY2ZC7
+select publish_year, director, count(*) number
+from (SELECT mda.ImdbId
+           , mda.chineseTitle
+           , mda.ImdbTitle
+           , substring_index(substring_index(mda.director, ';', b.help_topic_id + 1), ';', - 1) AS director
+      FROM movies_director_audited mda
+               INNER JOIN mysql.help_topic b
+                          ON b.help_topic_id < (length(mda.director) - length(REPLACE(mda.director, ';', '')) + 1)
+      where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')) a,
+     movies_publish_date_audited
+where a.ImdbId = movies_publish_date_audited.ImdbId
+group by publish_year, director order by publish_year,number;

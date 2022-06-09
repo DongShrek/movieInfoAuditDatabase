@@ -13,9 +13,8 @@ from imdb_douban_movie m;
 
 ## 利用TMDB更新缺失的中文名
 ## 如果imdb_douban_movie中缺少中文名
-insert ignore into movie_chinese_title_audited (ImdbId, chineseTitle)
-select m.ImdbId, t.movieTitle
-from imdb_douban_movie m,
-     tmdb_movie_chinese t
-where m.ImdbId = t.ImdbId
-  and m.chineseTitle is null;
+update movie_chinese_title_audited a
+set a.chineseTitle=(select t.movieTitle
+                    from tmdb_movie_chinese t
+                    where t.ImdbId = a.ImdbId)
+where a.chineseTitle is null;

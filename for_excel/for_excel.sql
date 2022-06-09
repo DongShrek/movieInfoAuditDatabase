@@ -103,3 +103,13 @@ FROM movies_actor_audited maa
 JOIN auto_id
 ON auto_id.id< (length(maa.actor) - length(REPLACE(maa.actor, ';', '')) + 1)
 where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis='y')) a group by actor order by number desc ;
+
+# 电影日期 X8TJAGBA
+select timeline_year.the_year year, ifnull(a.number, 0) number
+from timeline_year
+         left join (select publish_year, count(*) number
+                    from (select *
+                          from movies_publish_date_audited
+                          where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')) md
+                    group by publish_year
+                    order by publish_year) a on timeline_year.the_year = a.publish_year

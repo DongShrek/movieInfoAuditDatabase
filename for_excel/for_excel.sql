@@ -123,7 +123,92 @@ from (SELECT mda.ImdbId
       FROM movies_director_audited mda
                INNER JOIN mysql.help_topic b
                           ON b.help_topic_id < (length(mda.director) - length(REPLACE(mda.director, ';', '')) + 1)
-      where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')) a,
+      where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')) director_list,
      movies_publish_date_audited
-where a.ImdbId = movies_publish_date_audited.ImdbId
+where director_list.ImdbId = movies_publish_date_audited.ImdbId
 group by publish_year, director order by publish_year,number;
+
+# 重点导演电影对应关系列表 GK8XTTEG
+     ## 临时表1 全部导演与电影对应关系 GK8XTTEG
+create table if not exists director_movie_single_temp
+SELECT mda.ImdbId
+     , mda.chineseTitle
+     , mda.ImdbTitle
+     , substring_index(substring_index(mda.director, ';', b.help_topic_id + 1), ';',
+                       - 1) AS director
+FROM movies_director_audited mda
+         INNER JOIN mysql.help_topic b
+                    ON b.help_topic_id <
+                       (length(mda.director) - length(REPLACE(mda.director, ';', '')) + 1)
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y');
+
+     ## 临时表2 重点导演名单 GK8XTTEG
+create table if not exists important_directors_temp
+select director_movie_single_temp.director, count(*) number
+from director_movie_single_temp
+group by director
+order by number desc
+LIMIT 38;
+
+     ## 查询 GK8XTTEG
+SELECT ImdbId
+     , chineseTitle
+     , ImdbTitle
+     , director
+FROM director_movie_single_temp
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')
+  and director in (select director
+                   from important_directors_temp c);
+
+     ## 删除临时表 GK8XTTEG
+drop table if exists important_directors_temp;
+drop table if exists director_movie_single_temp;
+
+
+
+# 重点导演按年份电影数量S43SYH3G
+     ## 临时表1 全部导演与电影对应关系 S43SYH3G
+create table  if not exists director_movie_single_temp
+SELECT mda.ImdbId
+     , mda.chineseTitle
+     , mda.ImdbTitle
+     , substring_index(substring_index(mda.director, ';', b.help_topic_id + 1),
+                       ';',
+                       - 1) AS director
+FROM movies_director_audited mda
+         INNER JOIN mysql.help_topic b
+                    ON b.help_topic_id <
+                       (length(mda.director) - length(REPLACE(mda.director, ';', '')) + 1)
+where ImdbId in
+      (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y');
+
+     ## 临时表2 重点导演名单 S43SYH3G
+create table  if not exists important_directors_temp
+select director_movie_single_temp.director, count(*) number
+                               from director_movie_single_temp
+                               group by director
+                               order by number desc
+                               LIMIT 38;
+
+     ## 临时表3 重点导演电影对应关系 S43SYH3G
+create table  if not exists important_director_movie_single_temp
+SELECT ImdbId
+           , chineseTitle
+           , ImdbTitle
+           , director
+      FROM director_movie_single_temp
+      where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')
+        and director in (select director
+                         from important_directors_temp);
+     ## 查询结果 S43SYH3G
+select publish_year, director, count(*) number
+from important_director_movie_single_temp,
+     movies_publish_date_audited
+where important_director_movie_single_temp.ImdbId = movies_publish_date_audited.ImdbId
+group by publish_year, director
+order by publish_year, number;
+
+     ## 删除临时表 S43SYH3G
+drop table if exists important_director_movie_single_temp;
+drop table if exists important_directors_temp;
+drop table if exists director_movie_single_temp;

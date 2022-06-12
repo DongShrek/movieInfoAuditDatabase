@@ -75,7 +75,7 @@ order by movie_duration_temp.endDay desc, movie_duration_temp.startDay;
 ## 3-5 删除临时表 9X3KC8SR
 drop table if exists movie_duration_temp;
 drop table if exists start_end_day_serial_number_temp;
-drop table if exists start_end_day_temp
+drop table if exists start_end_day_temp;
 #---------------------------------------------------------------------------------------------------------------------#
 
 # 4. 生成导演表 单行变多行 JSLA2ZY8
@@ -118,7 +118,7 @@ from movies_analysis_list mal,
 where mal.ImdbId = mla.ImdbId
   and mal.isNeedAnalysis = 'y'
 group by mla.languageInChinese
-order by number desc
+order by number desc;
 #---------------------------------------------------------------------------------------------------------------------#
 
 # 7. 生成演员表 单行变多行 取一部电影前5位的演员 Z77MAPS2
@@ -129,7 +129,7 @@ SELECT maa.ImdbId
 FROM movies_actor_audited maa
          JOIN auto_id
               ON auto_id.id < (length(maa.actor) - length(REPLACE(maa.actor, ';', '')) + 1)
-where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y');
 #---------------------------------------------------------------------------------------------------------------------#
 
 # 8. 演员电影数量 取一部电影前5位的演员 3DHCJBWY
@@ -163,15 +163,15 @@ where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 
 
 ## 9-2 临时表2 X8TJAGBA
 create table if not exists each_year_movie_count_temp
-select publish_year, count(*) number
+select publish_year_imdb, count(*) number
 from movie_publish_year_temp
-group by publish_year
-order by publish_year;
+group by publish_year_imdb
+order by publish_year_imdb;
 
 ## 9-3 查询 需要年连续 X8TJAGBA
 select timeline_year.the_year year, ifnull(each_year_movie_count_temp.number, 0) number
 from timeline_year
-         left join each_year_movie_count_temp on timeline_year.the_year = each_year_movie_count_temp.publish_year;
+         left join each_year_movie_count_temp on timeline_year.the_year = each_year_movie_count_temp.publish_year_imdb;
 
 ## 9-4 删除临时表 X8TJAGBA
 drop table if exists each_year_movie_count_temp;
@@ -191,12 +191,12 @@ FROM movies_director_audited mda
 where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y');
 
 ## 10-2 查询 GVEY2ZC7
-select publish_year, director_list.director, count(*) number
+select publish_year_imdb, director_list.director, count(*) number
 from director_movie_single_temp director_list,
      movies_publish_date_audited
 where director_list.ImdbId = movies_publish_date_audited.ImdbId
-group by publish_year, director
-order by publish_year, number;
+group by publish_year_imdb, director
+order by publish_year_imdb, number;
 
 ## 10-3 删除临时表 GVEY2ZC7
 drop table if exists director_movie_single_temp;
@@ -274,12 +274,12 @@ where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 
   and director in (select director
                    from important_directors_temp);
 ## 12-4 查询结果 S43SYH3G
-select publish_year, director, count(*) number
+select publish_year_imdb, director, count(*) number
 from important_director_movie_single_temp,
      movies_publish_date_audited
 where important_director_movie_single_temp.ImdbId = movies_publish_date_audited.ImdbId
-group by publish_year, director
-order by publish_year, number;
+group by publish_year_imdb, director
+order by publish_year_imdb, number;
 
 ## 12-5 删除临时表 S43SYH3G
 drop table if exists important_director_movie_single_temp;
@@ -347,3 +347,47 @@ order by number;
 drop table if exists actor_movie_single_temp;
 drop table if exists important_actor_temp;
 #---------------------------------------------------------------------------------------------------------------------#
+
+# 15. 各类型电影数量 imdb数据 W8QGZ9A8
+## 15-1 临时表 W8QGZ9A8
+create table if not exists genre_single_temp
+SELECT mga.ImdbId
+     , mga.chineseTitle
+     , mga.ImdbTitle
+     , substring_index(substring_index(mga.imdbGenre, ',', b.help_topic_id + 1), ',', - 1) AS genre
+FROM movie_genre_audited mga
+         INNER JOIN mysql.help_topic b
+                    ON b.help_topic_id < (length(mga.imdbGenre) - length(REPLACE(mga.imdbGenre, ',', '')) + 1)
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y');
+
+## 15-2 查询 W8QGZ9A8
+select genreBilingual, count(*) number
+from genre_single_temp,genre_conversion
+where genre_single_temp.genre=genre_conversion.genreEng
+group by genreBilingual
+order by number desc;
+
+## 15-3 删除临时表 W8QGZ9A8
+drop table if exists genre_single_temp;
+
+#---------------------------------------------------------------------------------------------------------------------#
+# 16. 各类型电影数量 豆瓣数据 LNVJSDBG
+## 16-1 临时表 LNVJSDBG
+create table if not exists genre_single_temp
+SELECT mga.ImdbId
+     , mga.chineseTitle
+     , mga.ImdbTitle
+     , substring_index(substring_index(mga.doubanGenre, ';', b.help_topic_id + 1), ';', - 1) AS genre
+FROM movie_genre_audited mga
+         INNER JOIN mysql.help_topic b
+                    ON b.help_topic_id < (length(mga.doubanGenre) - length(REPLACE(mga.doubanGenre, ';', '')) + 1)
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y');
+
+## 16-2 查询 LNVJSDBG
+select genre_single_temp.genre, count(*) number
+from genre_single_temp
+group by genre
+order by number desc;
+
+## 16-3 删除临时表 LNVJSDBG
+drop table if exists genre_single_temp;

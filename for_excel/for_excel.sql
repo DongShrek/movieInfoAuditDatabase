@@ -391,3 +391,61 @@ order by number desc;
 
 ## 16-3 删除临时表 LNVJSDBG
 drop table if exists genre_single_temp;
+
+#---------------------------------------------------------------------------------------------------------------------#
+# 17. 在榜时间与电影出版日期关系 UDDH8EUC
+## 17-1 临时表1 UDDH8EUC
+create table if not exists start_end_day_temp
+select ImdbId, Title, min(day) startDay, max(day) endDay, count(day) dayCount
+from imdb_history
+where day < '2022-01-01'
+group by ImdbId, Title;
+## 17-2 临时表2 UDDH8EUC
+create table if not exists start_end_day_serial_number_temp
+select startEndDayTable.ImdbId   ImdbId,
+       startEndDayTable.Title    movieTitle,
+       startEndDayTable.startDay startDay,
+       daylist1.serialNumber     startDayNumber,
+       startEndDayTable.endDay   endDay,
+       daylist2.serialNumber     endDayNumber,
+       startEndDayTable.dayCount
+from start_end_day_temp as startEndDayTable
+         left join imdb_250_day_list as daylist1 on startday = daylist1.day
+         left join imdb_250_day_list as daylist2 on endday = daylist2.day;
+
+## 17-3 临时表3 UDDH8EUC
+create table if not exists movie_duration_temp
+select ImdbId,
+       movieTitle,
+       startDay,
+       startDayNumber,
+       endDay,
+       endDayNumber,
+       dayCount,
+       (endDayNumber - startDayNumber + 1)            duration,
+       (endDayNumber - startDayNumber + 1 - dayCount) difference
+from start_end_day_serial_number_temp;
+
+## 17-4 查询 UDDH8EUC
+select movie_duration_temp.ImdbId,
+       concat(movie_chinese_title_audited.chineseTitle,' ',movies_publish_date_audited.publish_year_imdb) movieTitle,
+       movie_duration_temp.dayCount,
+       substring_index(movie_duration_temp.startDay, '-', 1) startListYear,
+       substring_index(movie_duration_temp.endDay, '-', 1) endListYear,
+       movies_publish_date_audited.publish_year_imdb
+from movie_duration_temp,
+     movies_analysis_list,
+     movie_chinese_title_audited,
+     movies_publish_date_audited
+where movie_duration_temp.ImdbId = movies_analysis_list.ImdbId
+  and movie_duration_temp.ImdbId = movie_chinese_title_audited.ImdbId
+  and movie_duration_temp.ImdbId = movies_publish_date_audited.ImdbId
+  and movies_analysis_list.isNeedAnalysis = 'y'
+order by movies_publish_date_audited.publish_year_imdb,dayCount desc;
+
+## 17-5 删除临时表 UDDH8EUC
+drop table if exists movie_duration_temp;
+drop table if exists start_end_day_serial_number_temp;
+drop table if exists start_end_day_temp;
+
+#---------------------------------------------------------------------------------------------------------------------#

@@ -16,9 +16,9 @@ INSERT INTO mydb.language_conversion (languageCode, languageInChinese) VALUES ('
 INSERT INTO mydb.language_conversion (languageCode, languageInChinese) VALUES ('sv','瑞典语');
 INSERT INTO mydb.language_conversion (languageCode, languageInChinese) VALUES ('ro','罗马尼亚语');
 INSERT INTO mydb.language_conversion (languageCode, languageInChinese) VALUES ('hi','印度语');
-INSERT INTO mydb.language_conversion (languageCode, languageInChinese) VALUES ('cn','中文');
+INSERT INTO mydb.language_conversion (languageCode, languageInChinese) VALUES ('cn','华语');
 INSERT INTO mydb.language_conversion (languageCode, languageInChinese) VALUES ('sh','塞尔维亚语');
-INSERT INTO mydb.language_conversion (languageCode, languageInChinese) VALUES ('zh','中文');
+INSERT INTO mydb.language_conversion (languageCode, languageInChinese) VALUES ('zh','华语');
 INSERT INTO mydb.language_conversion (languageCode, languageInChinese) VALUES ('da','丹麦语');
 INSERT INTO mydb.language_conversion (languageCode, languageInChinese) VALUES ('mk','马其顿语');
 INSERT INTO mydb.language_conversion (languageCode, languageInChinese) VALUES ('nl','荷兰语');

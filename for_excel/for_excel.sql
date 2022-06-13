@@ -153,7 +153,6 @@ order by number desc;
 ## 8-3 删除临时表 3DHCJBWY
 drop table if exists actor_movie_single_temp;
 #---------------------------------------------------------------------------------------------------------------------#
-
 # 9. 每年电影数量 电影与年对应关系 X8TJAGBA
 ## 9-1 临时表1 X8TJAGBA
 create table if not exists movie_publish_year_temp
@@ -161,20 +160,13 @@ select *
 from movies_publish_date_audited
 where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y');
 
-## 9-2 临时表2 X8TJAGBA
-create table if not exists each_year_movie_count_temp
+## 9-2 查询 X8TJAGBA
 select publish_year_imdb, count(*) number
 from movie_publish_year_temp
 group by publish_year_imdb
 order by publish_year_imdb;
 
-## 9-3 查询 需要年连续 X8TJAGBA
-select timeline_year.the_year year, ifnull(each_year_movie_count_temp.number, 0) number
-from timeline_year
-         left join each_year_movie_count_temp on timeline_year.the_year = each_year_movie_count_temp.publish_year_imdb;
-
-## 9-4 删除临时表 X8TJAGBA
-drop table if exists each_year_movie_count_temp;
+## 9-3 删除临时表 X8TJAGBA
 drop table if exists movie_publish_year_temp;
 #---------------------------------------------------------------------------------------------------------------------#
 
@@ -449,3 +441,11 @@ drop table if exists start_end_day_serial_number_temp;
 drop table if exists start_end_day_temp;
 
 #---------------------------------------------------------------------------------------------------------------------#
+
+## 18-1 所有印度电影 CWXU2J6J
+# 所有印度电影
+select ImdbId,concat(chineseTitle,'(',publish_year_imdb,')') fullTitle,publish_year_imdb realse_year
+from movies_publish_date_audited
+where ImdbId in (select ImdbId
+                 from movie_language_audited
+                 where languageInChinese = '印度语')

@@ -120,6 +120,17 @@ where mal.ImdbId = mla.ImdbId
 group by mla.languageInChinese
 order by number desc;
 #---------------------------------------------------------------------------------------------------------------------#
+# 1006. 一直在榜 语言占比统计饼图 BJL55MDD
+select mla.languageInChinese as languages, count(mla.languageInChinese) as number
+from movies_analysis_list mal,
+     movie_language_audited mla,
+     always_on_list_movie_temporary_buff alw
+where mal.ImdbId = mla.ImdbId
+  and mal.isNeedAnalysis = 'y'
+  and mal.ImdbId = alw.ImdbId
+group by mla.languageInChinese
+order by number desc
+#---------------------------------------------------------------------------------------------------------------------#
 
 # 7. 生成演员表 单行变多行 取一部电影前5位的演员 Z77MAPS2
 SELECT maa.ImdbId

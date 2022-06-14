@@ -205,7 +205,7 @@ order by publish_year_imdb, number;
 drop table if exists director_movie_single_temp;
 #---------------------------------------------------------------------------------------------------------------------#
 
-# 11. 重点导演电影对应关系列表 GK8XTTEG
+# 11. **重点导演**电影对应关系列表 GK8XTTEG
 ## 11-1 临时表1 全部导演与电影对应关系 GK8XTTEG
 create table if not exists director_movie_single_temp
 SELECT mda.ImdbId
@@ -242,6 +242,44 @@ drop table if exists important_directors_temp;
 drop table if exists director_movie_single_temp;
 #---------------------------------------------------------------------------------------------------------------------#
 
+# 1011. 一直在榜**重点导演**电影对应关系列表 8J5BW4J9 导演选取有两部以上的导演
+## 1011-1 临时表1  一直在榜影片的导演与电影对应关系 8J5BW4J9
+create table if not exists director_movie_single_temp
+SELECT mda.ImdbId
+     , mda.chineseTitle
+     , mda.ImdbTitle
+     , substring_index(substring_index(mda.director, ';', b.help_topic_id + 1), ';',
+                       - 1) AS director
+FROM movies_director_audited mda
+         INNER JOIN mysql.help_topic b
+                    ON b.help_topic_id <
+                       (length(mda.director) - length(REPLACE(mda.director, ';', '')) + 1)
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y') and ImdbId in (select ImdbId from always_on_list_movie_temporary_buff);
+
+## 1011-2 临时表2 一直在榜重点导演名单 8J5BW4J9
+create table if not exists important_directors_temp
+select director_movie_single_temp.director, count(*) number
+from director_movie_single_temp
+group by director
+order by number desc
+LIMIT 33;
+
+## 1011-3 查询一直在榜 一直在榜重点导演与电影对应关系 8J5BW4J9
+SELECT ImdbId
+     , chineseTitle
+     , ImdbTitle
+     , director
+FROM director_movie_single_temp
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')
+  and director in (select director
+                   from important_directors_temp c);
+
+## 11-4 删除临时表 GK8XTTEG
+drop table if exists important_directors_temp;
+drop table if exists director_movie_single_temp;
+
+
+#---------------------------------------------------------------------------------------------------------------------#
 # 12. 重点导演按年份电影数量S43SYH3G
 ## 12-1 临时表1 全部导演与电影对应关系 S43SYH3G
 create table if not exists director_movie_single_temp
@@ -319,6 +357,38 @@ order by number;
 ## 13-4 删除临时表 SL3BVS5Q
 drop table if exists important_directors_temp;
 drop table if exists director_movie_single_temp;
+#---------------------------------------------------------------------------------------------------------------------#
+
+# 1013. **重点导演**电影数量 PRLVY7G3 两部以上影片导演
+
+## 1013-1 临时表1 PRLVY7G3
+create table if not exists director_movie_single_temp
+SELECT mda.ImdbId
+     , mda.chineseTitle
+     , mda.ImdbTitle
+     , substring_index(substring_index(mda.director, ';', b.help_topic_id + 1), ';', - 1) AS director
+FROM movies_director_audited mda
+         INNER JOIN mysql.help_topic b
+                    ON b.help_topic_id < (length(mda.director) - length(REPLACE(mda.director, ';', '')) + 1)
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y') and ImdbId in (select ImdbId from always_on_list_movie_temporary_buff);
+
+## 1013-2 临时表2 一直在榜重点导演的影片数量 PRLVY7G3
+create table if not exists important_directors_temp
+select director, count(*) number
+from director_movie_single_temp
+group by director
+order by number desc
+LIMIT 33;
+
+## 1013-3 查询 PRLVY7G3 再排序
+select *
+from important_directors_temp
+order by number;
+
+## 1013-4 删除临时表 PRLVY7G3
+drop table if exists important_directors_temp;
+drop table if exists director_movie_single_temp;
+
 #---------------------------------------------------------------------------------------------------------------------#
 
 # 14. 主要电影演员数量 5GSVD56U
@@ -453,10 +523,64 @@ drop table if exists start_end_day_temp;
 
 #---------------------------------------------------------------------------------------------------------------------#
 
-## 18-1 所有印度电影 CWXU2J6J
+## 18 曾上榜影片进入榜单按年统计数量 2LPRKAVT
+select cast(Imdb250Year as SIGNED) Imdb250Year, count(*) number
+from (select ImdbId, substring_index(Imdb250Day, '-', 1) Imdb250Year from movie_basic_info) a
+where a.ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis='y')
+group by Imdb250Year order by Imdb250Year;
+
+#---------------------------------------------------------------------------------------------------------------------#
+## 1018 一直在榜影片进入榜单按年统计数量 SWQ85YAT
+select cast(Imdb250Year as SIGNED) Imdb250Year, count(*) number
+from (select ImdbId, substring_index(Imdb250Day, '-', 1) Imdb250Year from movie_basic_info) a
+where a.ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis='y') and a.ImdbId in (select ImdbId from always_on_list_movie_temporary_buff)
+group by Imdb250Year order by Imdb250Year;
+
+#---------------------------------------------------------------------------------------------------------------------#
+## 30 所有印度电影 CWXU2J6J
 # 所有印度电影
-select ImdbId,concat(chineseTitle,'(',publish_year_imdb,')') fullTitle,publish_year_imdb realse_year
+select ImdbId, concat(chineseTitle, '(', publish_year_imdb, ')') fullTitle, publish_year_imdb realse_year
 from movies_publish_date_audited
 where ImdbId in (select ImdbId
                  from movie_language_audited
                  where languageInChinese = '印度语')
+  and ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y') order by realse_year;
+
+#---------------------------------------------------------------------------------------------------------------------#
+## 31. 印度电影投票情况 QTACCUN7
+# 31-1 临时表 所有印度电影 QTACCUN7
+create table if not exists all_india_movie_temp
+select ImdbId, concat(chineseTitle, '(', publish_year_imdb, ')') fullTitle, publish_year_imdb realse_year
+from movies_publish_date_audited
+where ImdbId in (select ImdbId
+                 from movie_language_audited
+                 where languageInChinese = '印度语')
+  and ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')
+order by realse_year;
+
+# 31-2 查询 QTACCUN7
+select imdb_history.ImdbId,
+       concat(movies_publish_date_audited.chineseTitle,' (',movies_publish_date_audited.publish_year_imdb,')') chineseTitle,
+       substring_index(Day, '-', 2) month,
+       sum(Votes)                   number,
+       movies_publish_date_audited.publish_year_imdb realseYear
+from imdb_history
+         left join movies_publish_date_audited on movies_publish_date_audited.ImdbId = imdb_history.ImdbId
+where imdb_history.ImdbId in (select ImdbId from all_india_movie_temp) and Day<'2022-01-01'
+group by month, imdb_history.ImdbId
+order by realseYear;
+
+# 31-3 删除临时表 QTACCUN7
+drop table if exists all_india_movie_temp
+#---------------------------------------------------------------------------------------------------------------------#
+# 32. 印度电影打分情况 QUECSJJC
+select imdb_history.ImdbId,
+       concat(movies_publish_date_audited.chineseTitle,' (',movies_publish_date_audited.publish_year_imdb,')') chineseTitle,
+       substring_index(Day, '-', 2) month,
+       round(avg(Rating),1)                  rating,
+       movies_publish_date_audited.publish_year_imdb realseYear
+from imdb_history
+         left join movies_publish_date_audited on movies_publish_date_audited.ImdbId = imdb_history.ImdbId
+where imdb_history.ImdbId in (select ImdbId from all_india_movie_temp) and Day<'2022-01-01'
+group by month, imdb_history.ImdbId
+order by realseYear;

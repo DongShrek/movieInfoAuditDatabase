@@ -1,4 +1,4 @@
-# 一直在榜影片(临时表，为计算快速暂时保留，需重新生成更新)
+# 一直在榜影片(临时表，为计算快速暂时保留，更新需重新生成)
 ## 临时表1
 create table if not exists start_end_day_temp
 select ImdbId, Title, min(day) startDay, max(day) endDay, count(day) dayCount
@@ -31,6 +31,7 @@ select ImdbId,
        (endDayNumber - startDayNumber + 1 - dayCount) difference
 from start_end_day_serial_number_temp;
 
+# 创建一直在榜影片列表
 create table if not exists always_on_list_movie_temporary_buff
 select movies_analysis_list.ImdbId,
        movies_analysis_list.Title,

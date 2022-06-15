@@ -181,6 +181,22 @@ order by publish_year_imdb;
 drop table if exists movie_publish_year_temp;
 #---------------------------------------------------------------------------------------------------------------------#
 
+# 1009 一直在榜影片每年电影数量 电影与年对应关系 TLC5RHTW
+
+## 1009-1 临时表1 仅临时表1 movie_publish_year_temp 与 X8TJAGBA不同
+
+create table if not exists movie_publish_year_temp
+select *
+from movies_publish_date_audited
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y') and ImdbId in (select ImdbId from always_on_list_movie_temporary_buff);
+
+# 比较未一直在榜的影片
+create table if not exists movie_publish_year_temp
+select *
+from movies_publish_date_audited
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y') and ImdbId not in (select ImdbId from always_on_list_movie_temporary_buff);
+#---------------------------------------------------------------------------------------------------------------------#
+
 # 10. 导演每年电影数量 GVEY2ZC7
 ## 10-1 临时表1 GVEY2ZC7
 create table if not exists director_movie_single_temp
@@ -393,32 +409,102 @@ drop table if exists director_movie_single_temp;
 
 # 14. 主要电影演员数量 5GSVD56U
 
+# 14-0-1 id临时表
+
+create table if not exists auto_id_temp
+(
+    id int null
+);
+
+# 14-0-2 创建存储过程 取前5位演员
+create procedure myproc()
+begin
+    declare i int default 1;
+    while i <= 5
+        do
+            insert into auto_id_temp (id) values (i);
+            set i = i + 1;
+        end while;
+end;
+
+# 14-0-3 调用过程
+call myproc();
+
+# 14-0-4 删除过程
+drop procedure if exists myproc;
+
 ## 14-1 临时表1 5GSVD56U
 create table if not exists actor_movie_single_temp
 SELECT maa.ImdbId
      , maa.chineseTitle
      , maa.ImdbTitle
-     , substring_index(substring_index(maa.actor, ';', auto_id.id + 1), ';', - 1) AS actor
+     , substring_index(substring_index(maa.actor, ';', auto_id_temp.id + 1), ';', - 1) AS actor
 FROM movies_actor_audited maa
-         JOIN auto_id
-              ON auto_id.id < (length(maa.actor) - length(REPLACE(maa.actor, ';', '')) + 1)
+         JOIN auto_id_temp
+              ON auto_id_temp.id < (length(maa.actor) - length(REPLACE(maa.actor, ';', '')) + 1)
 where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y');
 ## 14-2 临时表2 5GSVD56U
 create table if not exists important_actor_temp
 select actor_movie_single_temp.actor, count(*) number
 from actor_movie_single_temp
 group by actor
-order by number desc
-limit 27;
+order by number desc;
 
-## 14-3 查询 5GSVD56U
+## 14-3 查询 5GSVD56U 参演影片大于5
 select *
 from important_actor_temp
+where number>5
 order by number;
 
 ## 14-4 删除临时表 5GSVD56U
 drop table if exists actor_movie_single_temp;
 drop table if exists important_actor_temp;
+drop table if exists auto_id_temp;
+#---------------------------------------------------------------------------------------------------------------------#
+
+# 1014 一直在榜影片演员参演影片数量表 A95BJJ3R
+# 仅临时表1 actor_movie_single_temp和查询与5GSVD56U不同
+create table if not exists actor_movie_single_temp
+SELECT maa.ImdbId
+     , maa.chineseTitle
+     , maa.ImdbTitle
+     , substring_index(substring_index(maa.actor, ';', auto_id_temp.id + 1), ';', - 1) AS actor
+FROM movies_actor_audited maa
+         JOIN auto_id_temp
+              ON auto_id_temp.id < (length(maa.actor) - length(REPLACE(maa.actor, ';', '')) + 1)
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y') and ImdbId in (select ImdbId from always_on_list_movie_temporary_buff);
+
+## 1014-3 查询 5GSVD56U 参演影片大于2
+select *
+from important_actor_temp
+where number>2
+order by number;
+
+
+#---------------------------------------------------------------------------------------------------------------------#
+
+# 2014 前两位主要演员表 U5M667VN
+# 仅存储过程与查询5GSVD56U不同
+# 14-0-2 创建存储过程 取前两位演员
+
+create procedure myproc()
+begin
+    declare i int default 1;
+    while i <= 2
+        do
+            insert into auto_id_temp (id) values (i);
+            set i = i + 1;
+        end while;
+end
+
+## 14-3 查询 5GSVD56U 参演影片大于3
+
+select *
+from important_actor_temp
+where number>3
+order by number;
+
+
 #---------------------------------------------------------------------------------------------------------------------#
 
 # 15. 各类型电影数量 imdb数据 W8QGZ9A8
@@ -442,6 +528,31 @@ order by number desc;
 
 ## 15-3 删除临时表 W8QGZ9A8
 drop table if exists genre_single_temp;
+#---------------------------------------------------------------------------------------------------------------------#
+# 1015 一直在榜影片 影片类型 按照imdb统计 GZ6X9PL5
+# 仅临时表genre_single_temp不同 GZ6X9PL5
+create table if not exists genre_single_temp
+SELECT mga.ImdbId
+     , mga.chineseTitle
+     , mga.ImdbTitle
+     , substring_index(substring_index(mga.imdbGenre, ',', b.help_topic_id + 1), ',', - 1) AS genre
+FROM movie_genre_audited mga
+         INNER JOIN mysql.help_topic b
+                    ON b.help_topic_id < (length(mga.imdbGenre) - length(REPLACE(mga.imdbGenre, ',', '')) + 1)
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y') and ImdbId in (select ImdbId from always_on_list_movie_temporary_buff);;
+
+
+# 比较未一直在榜的影片
+create table if not exists genre_single_temp
+SELECT mga.ImdbId
+     , mga.chineseTitle
+     , mga.ImdbTitle
+     , substring_index(substring_index(mga.imdbGenre, ',', b.help_topic_id + 1), ',', - 1) AS genre
+FROM movie_genre_audited mga
+         INNER JOIN mysql.help_topic b
+                    ON b.help_topic_id < (length(mga.imdbGenre) - length(REPLACE(mga.imdbGenre, ',', '')) + 1)
+where ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y') and ImdbId not in (select ImdbId from always_on_list_movie_temporary_buff);;
+
 
 #---------------------------------------------------------------------------------------------------------------------#
 # 16. 各类型电影数量 豆瓣数据 LNVJSDBG
@@ -535,6 +646,41 @@ select cast(Imdb250Year as SIGNED) Imdb250Year, count(*) number
 from (select ImdbId, substring_index(Imdb250Day, '-', 1) Imdb250Year from movie_basic_info) a
 where a.ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis='y') and a.ImdbId in (select ImdbId from always_on_list_movie_temporary_buff)
 group by Imdb250Year order by Imdb250Year;
+
+## 未一直在榜的影片
+select cast(Imdb250Year as SIGNED) Imdb250Year, count(*) number
+from (select ImdbId, substring_index(Imdb250Day, '-', 1) Imdb250Year from movie_basic_info) a
+where a.ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis='y') and a.ImdbId not in (select ImdbId from always_on_list_movie_temporary_buff)
+group by Imdb250Year order by Imdb250Year;
+
+#---------------------------------------------------------------------------------------------------------------------#
+# 19. 影片发行年与进入榜单年份关系 6PQ87SUJ
+select a.ImdbId,b.chineseTitle, substring_index(a.Imdb250Day, '-', 1) Imdb250Year, b.publish_year_imdb
+from movie_basic_info a,
+     movies_publish_date_audited b
+where a.ImdbId = b.ImdbId
+  and a.ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y');
+
+#---------------------------------------------------------------------------------------------------------------------#
+# 20. 影片发行年与进入榜单年与类型关系 C99LFKT3
+
+# genre_single_temp 查看 15-1 临时表 W8QGZ9A8
+create table if not exists movie_inlist_realse_year_temp
+select a.ImdbId,b.chineseTitle, substring_index(a.Imdb250Day, '-', 1) Imdb250Year, b.publish_year_imdb
+from movie_basic_info a,
+     movies_publish_date_audited b
+where a.ImdbId = b.ImdbId
+  and a.ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y');
+
+select genre_single_temp.chineseTitle,
+       movie_inlist_realse_year_temp.publish_year_imdb,
+       movie_inlist_realse_year_temp.Imdb250Year,
+       genre_conversion.genreBilingual
+from genre_single_temp
+left join movie_inlist_realse_year_temp on genre_single_temp.ImdbId=movie_inlist_realse_year_temp.ImdbId
+left join genre_conversion on genre_single_temp.genre=genre_conversion.genreEng;
+
+drop table if exists movie_inlist_realse_year_temp;
 
 #---------------------------------------------------------------------------------------------------------------------#
 ## 30 所有印度电影 CWXU2J6J

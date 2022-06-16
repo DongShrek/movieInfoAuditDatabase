@@ -655,11 +655,22 @@ group by Imdb250Year order by Imdb250Year;
 
 #---------------------------------------------------------------------------------------------------------------------#
 # 19. 影片发行年与进入榜单年份关系 6PQ87SUJ
-select a.ImdbId,b.chineseTitle, substring_index(a.Imdb250Day, '-', 1) Imdb250Year, b.publish_year_imdb
+select count(*) Quantity,substring_index(a.Imdb250Day, '-', 1) Imdb250Year, b.publish_year_imdb
 from movie_basic_info a,
      movies_publish_date_audited b
 where a.ImdbId = b.ImdbId
-  and a.ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y');
+  and a.ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')
+group by Imdb250Year, publish_year_imdb;
+#---------------------------------------------------------------------------------------------------------------------#
+
+#1019 # 一直在榜影片发行年与进入榜单年份关系 XC9BJ7HW
+select count(*) Quantity, substring_index(a.Imdb250Day, '-', 1) Imdb250Year, b.publish_year_imdb
+from movie_basic_info a,
+     movies_publish_date_audited b
+where a.ImdbId = b.ImdbId
+  and a.ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')
+  and a.ImdbId in (select ImdbId from always_on_list_movie_temporary_buff)
+group by Imdb250Year, publish_year_imdb;
 
 #---------------------------------------------------------------------------------------------------------------------#
 # 20. 影片发行年与进入榜单年与类型关系 C99LFKT3
@@ -681,6 +692,12 @@ left join movie_inlist_realse_year_temp on genre_single_temp.ImdbId=movie_inlist
 left join genre_conversion on genre_single_temp.genre=genre_conversion.genreEng;
 
 drop table if exists movie_inlist_realse_year_temp;
+
+#---------------------------------------------------------------------------------------------------------------------#
+# 21. 历史数据完整度 D8SCDL3T
+select count(*) Quantity, substring_index(Day, '-', 1) onlistyear
+from (select Day from imdb_history where Day < '2022-01-01' group by Day) a
+group by onlistyear;
 
 #---------------------------------------------------------------------------------------------------------------------#
 ## 30 所有印度电影 CWXU2J6J

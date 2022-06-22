@@ -67,10 +67,12 @@ from start_end_day_serial_number_temp;
 ## 3-4 查询 9X3KC8SR
 select *
 from movie_duration_temp,
-     movies_analysis_list
+     movies_analysis_list,
+     movie_chinese_title_audited
 where movie_duration_temp.ImdbId = movies_analysis_list.ImdbId
+  and movie_chinese_title_audited.ImdbId=movie_duration_temp.ImdbId
   and movies_analysis_list.isNeedAnalysis = 'y'
-order by movie_duration_temp.endDay desc, movie_duration_temp.startDay;
+order by dayCount desc;
 
 ## 3-5 删除临时表 9X3KC8SR
 drop table if exists movie_duration_temp;
@@ -699,6 +701,27 @@ select count(*) Quantity, substring_index(Day, '-', 1) onlistyear
 from (select Day from imdb_history where Day < '2022-01-01' group by Day) a
 group by onlistyear;
 
+#----------------------------------------------------------------------------------------------------------------------#
+# 22. 整体投票情况 按月份 EN2GNA2T
+
+select
+       substring_index(Day, '-', 2) month,
+       sum(Votes)                   voteAmount
+from imdb_history
+where imdb_history.ImdbId in (select ImdbId from movies_analysis_list) and Day<'2022-01-01'
+group by month
+
+#----------------------------------------------------------------------------------------------------------------------#
+# 23. 整体投票情况 按日 JTECRS33
+
+select
+       Day listDay,
+       sum(Votes)                   voteAmount
+from imdb_history
+where imdb_history.ImdbId in (select ImdbId from movies_analysis_list) and Day<'2022-01-01'
+group by listDay
+
+
 #---------------------------------------------------------------------------------------------------------------------#
 ## 30 所有印度电影 CWXU2J6J
 # 所有印度电影
@@ -747,3 +770,20 @@ from imdb_history
 where imdb_history.ImdbId in (select ImdbId from all_india_movie_temp) and Day<'2022-01-01'
 group by month, imdb_history.ImdbId
 order by realseYear;
+
+#---------------------------------------------------------------------------------------------------------------------#
+# 33.统计每个月有多少印度电影在榜 ZZ8M2YAZ
+select count(ImdbId) MovieAmount,month from (select
+       substring_index(Day, '-', 2) month,
+       ImdbId
+from imdb_history
+where imdb_history.ImdbId in (select ImdbId from all_india_movie_temp) and Day<'2022-01-01'
+group by month,ImdbId) a group by month
+#---------------------------------------------------------------------------------------------------------------------#
+# 34. 统计每天有多少印度电影在榜 VPPLAP2P
+select
+       date_format(Day,'%Y-%m-%d') listDay,
+       count(*) amount
+from imdb_history
+where imdb_history.ImdbId in (select ImdbId from all_india_movie_temp) and Day<'2022-01-01'
+group by listDay

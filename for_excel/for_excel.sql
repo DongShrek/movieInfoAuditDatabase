@@ -345,7 +345,14 @@ drop table if exists important_director_movie_single_temp;
 drop table if exists important_directors_temp;
 drop table if exists director_movie_single_temp;
 #---------------------------------------------------------------------------------------------------------------------#
+# 2012 导演创作时段时间轴甘特图 PX6FL6GN
+select director, min(publish_year_imdb) startYear,max(publish_year_imdb) endYear,max(publish_year_imdb)-min(publish_year_imdb) period
+from important_director_movie_single_temp,
+     movies_publish_date_audited
+where important_director_movie_single_temp.ImdbId = movies_publish_date_audited.ImdbId
+group by director
 
+#----------------------------------------------------------------------------------------------------------------------#
 # 13. 重点导演电影数量 SL3BVS5Q
 
 ## 13-1 临时表1 SL3BVS5Q

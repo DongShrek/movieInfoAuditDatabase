@@ -408,6 +408,12 @@ drop table if exists important_directors_temp;
 drop table if exists director_movie_single_temp;
 
 #---------------------------------------------------------------------------------------------------------------------#
+# 2013各数量电影数目所包括的导演数目 EMR2ABAA
+select movieAmount, count(*) directorAmount
+from (select director, count(*) movieAmount from director_movie_single_temp group by director) a
+group by movieAmount
+order by movieAmount desc
+#----------------------------------------------------------------------------------------------------------------------#
 
 # 14. 主要电影演员数量 5GSVD56U
 

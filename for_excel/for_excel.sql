@@ -351,6 +351,7 @@ from important_director_movie_single_temp,
      movies_publish_date_audited
 where important_director_movie_single_temp.ImdbId = movies_publish_date_audited.ImdbId
 group by director
+order by startYear
 
 #----------------------------------------------------------------------------------------------------------------------#
 # 13. 重点导演电影数量 SL3BVS5Q

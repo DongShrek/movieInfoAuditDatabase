@@ -692,7 +692,7 @@ group by Imdb250Year, publish_year_imdb;
 # 20. 影片发行年与进入榜单年与类型关系 C99LFKT3
 
 # genre_single_temp 查看 15-1 临时表 W8QGZ9A8
-create table if not exists movie_inlist_realse_year_temp
+create table if not exists movie_inlist_release_year_temp
 select a.ImdbId,b.chineseTitle, substring_index(a.Imdb250Day, '-', 1) Imdb250Year, b.publish_year_imdb
 from movie_basic_info a,
      movies_publish_date_audited b
@@ -700,14 +700,14 @@ where a.ImdbId = b.ImdbId
   and a.ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y');
 
 select genre_single_temp.chineseTitle,
-       movie_inlist_realse_year_temp.publish_year_imdb,
-       movie_inlist_realse_year_temp.Imdb250Year,
+       movie_inlist_release_year_temp.publish_year_imdb,
+       movie_inlist_rrelease_year_temp.Imdb250Year,
        genre_conversion.genreBilingual
 from genre_single_temp
-left join movie_inlist_realse_year_temp on genre_single_temp.ImdbId=movie_inlist_realse_year_temp.ImdbId
+left join movie_inlist_release_year_temp on genre_single_temp.ImdbId=movie_inlist_release_year_temp.ImdbId
 left join genre_conversion on genre_single_temp.genre=genre_conversion.genreEng;
 
-drop table if exists movie_inlist_realse_year_temp;
+drop table if exists movie_inlist_release_year_temp;
 
 #---------------------------------------------------------------------------------------------------------------------#
 # 21. 历史数据完整度 D8SCDL3T
@@ -739,36 +739,36 @@ group by listDay
 #---------------------------------------------------------------------------------------------------------------------#
 ## 30 所有印度电影 CWXU2J6J
 # 所有印度电影
-select ImdbId, concat(chineseTitle, '(', publish_year_imdb, ')') fullTitle, publish_year_imdb realse_year
+select ImdbId, concat(chineseTitle, '(', publish_year_imdb, ')') fullTitle, publish_year_imdb release_year
 from movies_publish_date_audited
 where ImdbId in (select ImdbId
                  from movie_language_audited
                  where languageInChinese = '印度语')
-  and ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y') order by realse_year;
+  and ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y') order by release_year;
 
 #---------------------------------------------------------------------------------------------------------------------#
 ## 31. 印度电影投票情况 QTACCUN7
 # 31-1 临时表 所有印度电影 QTACCUN7
 create table if not exists all_india_movie_temp
-select ImdbId, concat(chineseTitle, '(', publish_year_imdb, ')') fullTitle, publish_year_imdb realse_year
+select ImdbId, concat(chineseTitle, '(', publish_year_imdb, ')') fullTitle, publish_year_imdb release_year
 from movies_publish_date_audited
 where ImdbId in (select ImdbId
                  from movie_language_audited
                  where languageInChinese = '印度语')
   and ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')
-order by realse_year;
+order by release_year;
 
 # 31-2 查询 QTACCUN7
 select imdb_history.ImdbId,
        concat(movies_publish_date_audited.chineseTitle,' (',movies_publish_date_audited.publish_year_imdb,')') chineseTitle,
        substring_index(Day, '-', 2) month,
        sum(Votes)                   number,
-       movies_publish_date_audited.publish_year_imdb realseYear
+       movies_publish_date_audited.publish_year_imdb releaseYear
 from imdb_history
          left join movies_publish_date_audited on movies_publish_date_audited.ImdbId = imdb_history.ImdbId
 where imdb_history.ImdbId in (select ImdbId from all_india_movie_temp) and Day<'2022-01-01'
 group by month, imdb_history.ImdbId
-order by realseYear;
+order by releaseYear;
 
 # 31-3 删除临时表 QTACCUN7
 drop table if exists all_india_movie_temp
@@ -778,12 +778,12 @@ select imdb_history.ImdbId,
        concat(movies_publish_date_audited.chineseTitle,' (',movies_publish_date_audited.publish_year_imdb,')') chineseTitle,
        substring_index(Day, '-', 2) month,
        round(avg(Rating),1)                  rating,
-       movies_publish_date_audited.publish_year_imdb realseYear
+       movies_publish_date_audited.publish_year_imdb releaseYear
 from imdb_history
          left join movies_publish_date_audited on movies_publish_date_audited.ImdbId = imdb_history.ImdbId
 where imdb_history.ImdbId in (select ImdbId from all_india_movie_temp) and Day<'2022-01-01'
 group by month, imdb_history.ImdbId
-order by realseYear;
+order by releaseYear;
 
 #---------------------------------------------------------------------------------------------------------------------#
 # 33.统计每个月有多少印度电影在榜 ZZ8M2YAZ

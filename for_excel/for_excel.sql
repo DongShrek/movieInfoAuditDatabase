@@ -737,14 +737,22 @@ group by listDay
 
 
 #---------------------------------------------------------------------------------------------------------------------#
-## 30 所有印度电影 CWXU2J6J
+## 30 所有印度电影及在榜时间 CWXU2J6J
 # 所有印度电影
-select ImdbId, concat(chineseTitle, '(', publish_year_imdb, ')') fullTitle, publish_year_imdb release_year
-from movies_publish_date_audited
-where ImdbId in (select ImdbId
-                 from movie_language_audited
-                 where languageInChinese = '印度语')
-  and ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y') order by release_year;
+select a.ImdbId,
+       count(*) dayCount,
+       concat(chineseTitle, '(', publish_year_imdb, ')') fullTitle,
+       publish_year_imdb                                 release_year
+from imdb_history a,
+     movies_publish_date_audited b
+where a.ImdbId in (select ImdbId
+                   from movie_language_audited
+                   where languageInChinese = '印度语')
+  and Day < '2022-01-01'
+  and a.ImdbId in (select ImdbId from movies_analysis_list where isNeedAnalysis = 'y')
+  and a.ImdbId = b.ImdbId
+group by ImdbId
+order by release_year
 
 #---------------------------------------------------------------------------------------------------------------------#
 ## 31. 印度电影投票情况 QTACCUN7
